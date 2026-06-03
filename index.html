@@ -152,9 +152,109 @@ nav{display:flex;align-items:center;gap:10px;padding:14px 18px;background:#fff;b
 <div id="app"></div>
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
-var AI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+var AI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent";
 function getGeminiKey() { return localStorage.getItem("yield_gemini_key") || ""; }
 function saveGeminiKey(k) { localStorage.setItem("yield_gemini_key", k.trim()); }
+
+// ── Yahoo Finance ticker map ──────────────────────────────────────────────────
+var YF_TICKER = {
+  // US
+  "NVDA":"NVDA","MSFT":"MSFT","AAPL":"AAPL","META":"META","AMZN":"AMZN",
+  "GOOGL":"GOOGL","BRK.B":"BRK-B","LLY":"LLY","JPM":"JPM","V":"V",
+  "SNAP":"SNAP","AMC":"AMC","GME":"GME","BYND":"BYND","NKLA":"NKLA",
+  "LCID":"LCID","COIN":"COIN","RIVN":"RIVN","OPEN":"OPEN","RIDE":"RIDE",
+  // SG - append .SI
+  "D05":"D05.SI","O39":"O39.SI","U11":"U11.SI","Z74":"Z74.SI",
+  "C38U":"C38U.SI","A17U":"A17U.SI","C6L":"C6L.SI","BN4":"BN4.SI",
+  "U96":"U96.SI","S68":"S68.SI","G13":"G13.SI","CCM":"CCM.SI",
+  "OV8":"OV8.SI","BS6":"BS6.SI","H78":"H78.SI","C8R":"C8R.SI",
+  "5TP":"5TP.SI","NI8":"NI8.SI","J69U":"J69U.SI","AIY":"AIY.SI",
+  // JP - append .T
+  "7203":"7203.T","6758":"6758.T","6861":"6861.T","8306":"8306.T",
+  "9432":"9432.T","4063":"4063.T","7267":"7267.T","6902":"6902.T",
+  "6501":"6501.T","4519":"4519.T","9984":"9984.T","3659":"3659.T",
+  "6702":"6702.T","5401":"5401.T","8411":"8411.T","6752":"6752.T",
+  "9433":"9433.T","8802":"8802.T","1925":"1925.T","7011":"7011.T",
+  // GB - append .L
+  "AZN":"AZN.L","SHEL":"SHEL.L","HSBA":"HSBA.L","ULVR":"ULVR.L",
+  "RIO":"RIO.L","BP":"BP.L","GSK":"GSK.L","DGE":"DGE.L",
+  "LSEG":"LSEG.L","BA.":"BA.L","ITV":"ITV.L","WPP":"WPP.L",
+  "VOD":"VOD.L","BT.A":"BT-A.L","LLOY":"LLOY.L","OCDO":"OCDO.L",
+  "IAG":"IAG.L","EZJ":"EZJ.L","NXT":"NXT.L","AUTO":"AUTO.L",
+  // DE - append .DE
+  "SAP":"SAP.DE","SIE":"SIE.DE","ALV":"ALV.DE","BMW":"BMW.DE",
+  "BAS":"BAS.DE","DHL":"DHL.DE","MRK":"MRK.DE","BAYN":"BAYN.DE",
+  "ADS":"ADS.DE","DB1":"DB1.DE","VOW3":"VOW3.DE","CBK":"CBK.DE",
+  "DBK":"DBK.DE","TUI1":"TUI1.DE","LHA":"LHA.DE","DHER":"DHER.DE",
+  "RWE":"RWE.DE","BOSS":"BOSS.DE","AIXA":"AIXA.DE","NDA":"NDA.DE",
+  // IN - append .NS
+  "RELIANCE":"RELIANCE.NS","TCS":"TCS.NS","HDFCBANK":"HDFCBANK.NS",
+  "INFY":"INFY.NS","HINDUNILVR":"HINDUNILVR.NS","ICICIBANK":"ICICIBANK.NS",
+  "ITC":"ITC.NS","BAJFINANCE":"BAJFINANCE.NS","SBIN":"SBIN.NS","MARUTI":"MARUTI.NS",
+  "YESBANK":"YESBANK.NS","SUZLON":"SUZLON.NS","JPASSOC":"JPASSOC.NS",
+  "PCJL":"PCJL.NS","VAKRANGEE":"VAKRANGEE.NS","UNITECH":"UNITECH.NS",
+  "ADAG":"ADAG.NS","RCOM":"RCOM.NS",
+  // AU - append .AX
+  "CBA":"CBA.AX","BHP":"BHP.AX","CSL":"CSL.AX","NAB":"NAB.AX",
+  "WBC":"WBC.AX","WES":"WES.AX","ANZ":"ANZ.AX","RIO":"RIO.AX",
+  "MQG":"MQG.AX","REA":"REA.AX","QAN":"QAN.AX","AGL":"AGL.AX",
+  "AMP":"AMP.AX","NEC":"NEC.AX","ZIP":"ZIP.AX","SYR":"SYR.AX",
+  "ILU":"ILU.AX","CTD":"CTD.AX","OSH":"OSH.AX",
+  // CN - HK
+  "0700":"0700.HK","9988":"9988.HK","3690":"3690.HK","9618":"9618.HK",
+  "1398":"1398.HK","0941":"0941.HK","2318":"2318.HK","1211":"1211.HK",
+  "0005":"0005.HK","3333":"3333.HK","2007":"2007.HK","1919":"1919.HK",
+  "PDD":"PDD","DIDI":"DIDI","EDU":"EDU","TAL":"TAL",
+  "BILI":"BILI","XPEV":"XPEV","LAIX":"LAIX",
+};
+
+var priceCache = {};
+
+async function fetchPrice(ticker) {
+  if (priceCache[ticker]) return priceCache[ticker];
+  var yfTicker = YF_TICKER[ticker] || ticker;
+  try {
+    // Use allorigins CORS proxy to bypass browser CORS restriction
+    var url = "https://query1.finance.yahoo.com/v8/finance/chart/" + yfTicker + "?interval=1d&range=1d";
+    var proxy = "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
+    var res = await fetch(proxy, {signal: AbortSignal.timeout(8000)});
+    var wrapper = await res.json();
+    var data = JSON.parse(wrapper.contents);
+    var q = data.chart.result[0].meta;
+    var price = q.regularMarketPrice;
+    var prev = q.previousClose || q.chartPreviousClose;
+    var change = prev ? ((price - prev) / prev * 100) : 0;
+    var currency = q.currency || "";
+    var sym = currency==="USD"?"$":currency==="SGD"?"S$":currency==="JPY"?"¥":
+              currency==="GBP"?"£":currency==="EUR"?"€":currency==="HKD"?"HK$":
+              currency==="INR"?"₹":currency==="AUD"?"A$":currency+"";
+    var fmt = price < 10 ? price.toFixed(3) : price < 100 ? price.toFixed(2) : price.toFixed(1);
+    var result = {
+      price: sym + fmt,
+      change: (change>=0?"+":"")+change.toFixed(2)+"%",
+      up: change >= 0,
+      raw: price,
+      currency: currency,
+      live: true
+    };
+    priceCache[ticker] = result;
+    return result;
+  } catch(e) {
+    console.warn("Price fetch failed for", ticker, e.message);
+    return null;
+  }
+}
+
+async function enrichPrices(stockList) {
+  // Fetch up to 5 at a time to avoid rate limiting
+  for (var i=0; i<stockList.length; i+=5) {
+    var batch = stockList.slice(i, i+5);
+    await Promise.all(batch.map(async function(st) {
+      var p = await fetchPrice(st.ticker);
+      if (p) { st.price=p.price; st.change=p.change; st.up=p.up; st.live=true; }
+    }));
+  }
+}
 
 // ── State ─────────────────────────────────────────────────────────────────────
 var state = { screen:"home", country:null, stock:null, tab:"buy", range:"1M", chart:[], analysis:null, loading:false, priceData:null, lastError:null };
@@ -393,7 +493,7 @@ function render() {
       html += '<div class="stock-card buy-card" onclick="openStock('+j+',\'buy\','+s.country+')">'+
         '<div class="stock-rank">#'+(j+1)+'</div>'+
         '<div class="stock-ticker">'+st.ticker+'</div>'+
-        '<div class="stock-price" style="color:#10b981">'+st.price+'</div>'+
+        '<div class="stock-price" style="color:#10b981">'+st.price+'<span style="font-size:8px;color:#10b981;margin-left:3px">'+(st.live?"●":"○")+'</span></div>'+
         '<div class="stock-price" style="font-size:11px;color:'+(st.up?"#10b981":"#ef4444")+'">'+st.change+'</div>'+
         '<div class="stock-name">'+st.name+'</div>'+
         '<div class="stock-sector">'+st.sector+'</div>'+
@@ -409,7 +509,7 @@ function render() {
       html += '<div class="stock-card avoid-card" onclick="openStock('+k+',\'avoid\','+s.country+')">'+
         '<div class="stock-rank">#'+(k+1)+'</div>'+
         '<div class="stock-ticker">'+sa.ticker+'</div>'+
-        '<div class="stock-price" style="color:#ef4444">'+sa.price+'</div>'+
+        '<div class="stock-price" style="color:#ef4444">'+sa.price+'<span style="font-size:8px;color:#94a3b8;margin-left:3px">'+(sa.live?"●":"○")+'</span></div>'+
         '<div class="stock-price" style="font-size:11px;color:'+(sa.up?"#10b981":"#ef4444")+'">'+sa.change+'</div>'+
         '<div class="stock-name">'+sa.name+'</div>'+
         '<div class="stock-sector">'+sa.sector+'</div>'+
@@ -442,7 +542,7 @@ function render() {
         (st.isBuy?"&#x25B2; BUY":"&#x25BC; AVOID")+'</div>'+
       '</div></div>'+
       '<div class="price-timestamp">&#x1F551; Last updated: '+now()+'</div>'+
-      '<div class="price-source">Indicative prices · For reference only</div>'+
+      '<div class="price-source">'+(st.live?'<span style="color:#10b981">● Live data via Yahoo Finance · 15min delay</span>':'○ Indicative price · Load stock list first for live data')+'</div>'+
       '</div>';
 
     // Range + Chart
@@ -584,16 +684,29 @@ function saveSetup(){
   if(!k){alert("Please enter your Gemini API key.");return;}
   saveGeminiKey(k); goHome();
 }
-function openCountry(idx){ state.country=idx; state.screen="stocks"; render(); }
+function openCountry(idx){
+  state.country=idx; state.screen="stocks"; render();
+  // Fetch live prices in background
+  var c=COUNTRIES[idx], sl=STOCKS[c.code];
+  var all = sl.buy.concat(sl.avoid);
+  enrichPrices(all).then(function(){ if(state.screen==="stocks") render(); });
+}
 
 function openStock(idx, tab, countryIdx){
   var c=COUNTRIES[countryIdx], st=STOCKS[c.code][tab][idx];
   var isBuy=tab==="buy";
   state.stock=Object.assign({},st,{isBuy:isBuy});
   state.screen="detail"; state.range="1M";
-  state.analysis=null; state.loading=true;
+  state.analysis=null; state.loading=true; state.lastError=null;
   state.chart=genChart(st.ticker,"1M");
   render();
+  // Refresh live price for detail view
+  fetchPrice(st.ticker).then(function(p){
+    if(p && state.stock && state.stock.ticker===st.ticker){
+      state.stock.price=p.price; state.stock.change=p.change;
+      state.stock.up=p.up; state.stock.live=true;
+    }
+  });
   var dp=getDataPoints(st);
   fetchAI(st.ticker,st.name,st.sector,isBuy,"1M",dp)
     .then(function(a){state.analysis=a;state.loading=false;render();})
