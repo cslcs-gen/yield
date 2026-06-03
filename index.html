@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#f0f4f8"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Yield"/>
+<title>Yield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;background:#f0f4f8;color:#1a2332;font-family:'Inter',sans-serif;overscroll-behavior:none}
+#app{min-height:100dvh;padding-bottom:32px}
+
+/* NAV */
+nav{display:flex;align-items:center;gap:10px;padding:14px 18px;background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:99;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.nav-logo{display:flex;align-items:center;gap:8px}
+.nav-title{color:#1a2332;font-size:17px;font-weight:800;letter-spacing:-0.5px}
+.nav-sub{color:#10b981;font-size:9px;letter-spacing:2px;font-weight:600}
+.nav-btns{margin-left:auto;display:flex;gap:8px}
+.nav-btn{background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Inter',sans-serif}
+.nav-btn:hover{background:#f1f5f9}
+
+/* SETUP */
+.setup-wrap{display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center}
+.setup-title{font-size:26px;font-weight:800;color:#1a2332;margin:16px 0 6px;letter-spacing:-0.5px}
+.setup-sub{color:#64748b;font-size:13px;margin-bottom:28px}
+.setup-card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:28px 24px;width:100%;max-width:420px;text-align:left;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.setup-label{font-size:11px;color:#64748b;letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.setup-input{width:100%;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;color:#1a2332;font-family:'Inter',monospace;font-size:13px;padding:12px 14px;outline:none;margin-bottom:6px;transition:border .2s}
+.setup-input:focus{border-color:#10b981}
+.setup-hint{font-size:11px;color:#94a3b8;line-height:1.6;margin-bottom:20px}
+.setup-hint a{color:#10b981}
+.setup-btn{width:100%;padding:14px;border:none;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;background:#10b981;color:#fff;transition:opacity .2s}
+.setup-btn:hover{opacity:.9}
+.setup-skip{font-size:12px;color:#94a3b8;text-align:center;margin-top:12px;cursor:pointer}
+.setup-skip:hover{color:#64748b}
+
+/* HOME */
+.home-hero{padding:28px 18px 20px}
+.home-title{font-size:28px;font-weight:800;color:#1a2332;letter-spacing:-1px;line-height:1.2}
+.home-title span{color:#10b981}
+.home-sub{color:#64748b;font-size:13px;margin-top:6px}
+.country-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:0 18px}
+.country-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:18px 16px;cursor:pointer;transition:all .15s;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.country-card:hover{border-color:#10b981;box-shadow:0 4px 16px rgba(16,185,129,0.12);transform:translateY(-1px)}
+.country-flag{font-size:28px;margin-bottom:10px}
+.country-name{color:#1a2332;font-weight:700;font-size:14px}
+.country-ex{color:#94a3b8;font-size:10px;margin-top:3px;font-weight:500}
+.country-count{display:inline-block;background:#f0fdf4;color:#10b981;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:8px}
+
+/* STOCKS - grid view */
+.page{padding:0 18px}
+.page-header{padding:20px 0 16px;display:flex;align-items:flex-start;justify-content:space-between}
+.page-title{font-size:20px;font-weight:800;color:#1a2332;letter-spacing:-0.5px}
+.page-sub{color:#94a3b8;font-size:11px;font-weight:500;margin-top:2px}
+.tab-bar{display:flex;background:#f1f5f9;border-radius:12px;padding:4px;margin-bottom:20px;gap:4px}
+.tab-btn{flex:1;padding:9px 0;border-radius:9px;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:'Inter',sans-serif;transition:all .15s;background:transparent;color:#94a3b8}
+.tab-btn.active-buy{background:#fff;color:#10b981;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.tab-btn.active-avoid{background:#fff;color:#ef4444;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.section-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#94a3b8;margin-bottom:14px}
+
+/* Stock GRID */
+.stock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:24px}
+.stock-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px 12px;cursor:pointer;transition:all .15s;position:relative}
+.stock-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.08)}
+.stock-card.buy-card:hover{border-color:#10b981}
+.stock-card.avoid-card:hover{border-color:#ef4444}
+.stock-rank{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;color:#cbd5e1}
+.stock-ticker{font-size:16px;font-weight:800;color:#1a2332;letter-spacing:-0.5px}
+.stock-price{font-size:13px;font-weight:700;margin-top:2px}
+.stock-name{font-size:10px;color:#64748b;margin-top:4px;line-height:1.3;font-weight:500}
+.stock-sector{display:inline-block;background:#f8fafc;color:#94a3b8;font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;margin-top:6px}
+.stock-action{font-size:10px;font-weight:700;margin-top:8px}
+.stock-timestamp{font-size:9px;color:#cbd5e1;margin-top:4px}
+
+/* DETAIL */
+.detail-header{background:#fff;border-radius:20px;padding:20px;margin-bottom:16px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.detail-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.detail-ticker{font-size:28px;font-weight:800;color:#1a2332;letter-spacing:-1px}
+.detail-name{color:#64748b;font-size:13px;margin-top:2px;font-weight:500}
+.detail-sector{color:#94a3b8;font-size:11px;margin-top:2px}
+.badge{border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.badge-buy{background:#f0fdf4;color:#10b981;border:1.5px solid #bbf7d0}
+.badge-avoid{background:#fef2f2;color:#ef4444;border:1.5px solid #fecaca}
+
+/* Data points grid */
+.datapoints{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.dp-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px}
+.dp-label{font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px}
+.dp-value{font-size:18px;font-weight:800;color:#1a2332;letter-spacing:-0.5px}
+.dp-value.positive{color:#10b981}
+.dp-value.negative{color:#ef4444}
+.dp-value.neutral{color:#f59e0b}
+.dp-sub{font-size:10px;color:#94a3b8;margin-top:2px;font-weight:500}
+.dp-wide{grid-column:span 2}
+
+/* Current price hero */
+.price-hero{background:linear-gradient(135deg,#1a2332 0%,#2d3f55 100%);border-radius:16px;padding:18px 20px;margin-bottom:16px;color:#fff}
+.price-label{font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.price-value{font-size:36px;font-weight:800;letter-spacing:-1px;color:#fff}
+.price-change{font-size:14px;font-weight:700;margin-top:2px}
+.price-change.up{color:#34d399}
+.price-change.down{color:#f87171}
+.price-timestamp{font-size:10px;color:#64748b;margin-top:8px}
+.price-source{font-size:9px;color:#475569;margin-top:2px}
+
+/* Chart */
+.chart-box{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:16px 12px 8px;margin-bottom:16px}
+.chart-label{font-size:10px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;padding-left:4px}
+.range-bar{display:flex;gap:6px;margin-bottom:16px}
+.range-btn{flex:1;padding:8px 0;border-radius:10px;border:1.5px solid #e2e8f0;cursor:pointer;font-size:12px;font-weight:700;font-family:'Inter',sans-serif;background:#f8fafc;color:#94a3b8;transition:all .15s}
+.range-btn.active{background:#10b981;color:#fff;border-color:#10b981}
+
+/* Rationale */
+.rationale-box{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px;margin-bottom:16px}
+.rationale-label{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.rationale-text{color:#475569;font-size:12px;line-height:1.7;font-weight:500}
+
+/* AI box */
+.ai-box{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.ai-header{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;color:#10b981;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px}
+.ai-badge{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:3px 10px;font-size:9px;font-weight:700;color:#10b981}
+.ai-headline{color:#1a2332;font-size:17px;font-weight:800;margin-bottom:10px;line-height:1.3;letter-spacing:-0.3px}
+.ai-summary{color:#475569;font-size:13px;line-height:1.7;margin-bottom:4px}
+.ai-section{color:#94a3b8;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:16px;margin-bottom:8px}
+.ai-bullet{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;color:#475569;font-size:13px;line-height:1.5;font-weight:500}
+.bullet-icon{flex-shrink:0;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px}
+.bullet-buy{background:#f0fdf4;color:#10b981}
+.bullet-avoid{background:#fef2f2;color:#ef4444}
+.ai-target{color:#1a2332;font-size:22px;font-weight:800;letter-spacing:-0.5px}
+.verdict-box{border-radius:12px;padding:16px;margin-top:16px}
+.verdict-buy{background:#f0fdf4;border:1.5px solid #bbf7d0}
+.verdict-avoid{background:#fef2f2;border:1.5px solid #fecaca}
+.verdict-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.verdict-buy .verdict-label{color:#10b981}
+.verdict-avoid .verdict-label{color:#ef4444}
+.verdict-text{font-size:13px;line-height:1.6;color:#1a2332;font-weight:600}
+.loading-wrap{text-align:center;padding:24px}
+.loading-text{color:#94a3b8;font-size:13px}
+.loading-dots::after{content:'...';animation:dots 1.5s infinite}
+@keyframes dots{0%,20%{content:'.'}40%,60%{content:'..'}80%,100%{content:'...'}}
+.error-box{background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;padding:14px;color:#ef4444;font-size:12px;line-height:1.6}
+
+/* Chip */
+.chip{display:inline-flex;align-items:center;gap:4px;background:#f1f5f9;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:600;color:#64748b;margin:2px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+var AI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+function getGeminiKey() { return localStorage.getItem("yield_gemini_key") || ""; }
+function saveGeminiKey(k) { localStorage.setItem("yield_gemini_key", k.trim()); }
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var state = { screen:"home", country:null, stock:null, tab:"buy", range:"1M", chart:[], analysis:null, loading:false, priceData:null };
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+var COUNTRIES = [
+  {code:"US",name:"United States",flag:"🇺🇸",exchange:"NYSE · NASDAQ"},
+  {code:"JP",name:"Japan",flag:"🇯🇵",exchange:"TSE"},
+  {code:"GB",name:"United Kingdom",flag:"🇬🇧",exchange:"LSE"},
+  {code:"DE",name:"Germany",flag:"🇩🇪",exchange:"XETRA"},
+  {code:"CN",name:"China",flag:"🇨🇳",exchange:"SSE · SZSE"},
+  {code:"SG",name:"Singapore",flag:"🇸🇬",exchange:"SGX"},
+  {code:"IN",name:"India",flag:"🇮🇳",exchange:"BSE · NSE"},
+  {code:"AU",name:"Australia",flag:"🇦🇺",exchange:"ASX"},
+];
+
+var STOCKS = {
+  US:{
+    buy:[{ticker:"NVDA",name:"NVIDIA Corp",sector:"Semiconductors",price:"$875.40",change:"+2.3%",up:true},{ticker:"MSFT",name:"Microsoft Corp",sector:"Technology",price:"$415.20",change:"+0.8%",up:true},{ticker:"AAPL",name:"Apple Inc",sector:"Technology",price:"$189.30",change:"-0.4%",up:false},{ticker:"META",name:"Meta Platforms",sector:"Social Media",price:"$523.10",change:"+1.9%",up:true},{ticker:"AMZN",name:"Amazon.com",sector:"E-Commerce",price:"$192.40",change:"+1.1%",up:true},{ticker:"GOOGL",name:"Alphabet Inc",sector:"Internet",price:"$175.80",change:"+0.6%",up:true},{ticker:"BRK.B",name:"Berkshire Hathaway",sector:"Financials",price:"$382.50",change:"+0.3%",up:true},{ticker:"LLY",name:"Eli Lilly & Co",sector:"Pharma",price:"$798.20",change:"+1.5%",up:true},{ticker:"JPM",name:"JPMorgan Chase",sector:"Banking",price:"$212.60",change:"+0.7%",up:true},{ticker:"V",name:"Visa Inc",sector:"Payments",price:"$279.40",change:"+0.5%",up:true}],
+    avoid:[{ticker:"SNAP",name:"Snap Inc",sector:"Social Media",price:"$11.20",change:"-3.1%",up:false},{ticker:"AMC",name:"AMC Entertainment",sector:"Entertainment",price:"$4.80",change:"-5.2%",up:false},{ticker:"GME",name:"GameStop Corp",sector:"Retail",price:"$18.40",change:"-2.8%",up:false},{ticker:"BYND",name:"Beyond Meat",sector:"Food Tech",price:"$7.60",change:"-4.1%",up:false},{ticker:"NKLA",name:"Nikola Corp",sector:"EV",price:"$0.82",change:"-6.3%",up:false},{ticker:"LCID",name:"Lucid Group",sector:"EV",price:"$2.94",change:"-3.7%",up:false},{ticker:"COIN",name:"Coinbase",sector:"Crypto",price:"$218.30",change:"+4.2%",up:true},{ticker:"RIVN",name:"Rivian Automotive",sector:"EV",price:"$10.80",change:"-2.9%",up:false},{ticker:"OPEN",name:"Opendoor Technologies",sector:"PropTech",price:"$1.42",change:"-4.8%",up:false},{ticker:"RIDE",name:"Lordstown Motors",sector:"EV",price:"$0.12",change:"-8.1%",up:false}]
+  },
+  JP:{
+    buy:[{ticker:"7203",name:"Toyota Motor",sector:"Automotive",price:"¥3,420",change:"+1.2%",up:true},{ticker:"6758",name:"Sony Group",sector:"Electronics",price:"¥12,850",change:"+0.9%",up:true},{ticker:"6861",name:"Keyence Corp",sector:"Industrial Tech",price:"¥65,200",change:"+1.4%",up:true},{ticker:"8306",name:"Mitsubishi UFJ",sector:"Banking",price:"¥1,842",change:"+0.6%",up:true},{ticker:"9432",name:"NTT Corp",sector:"Telecom",price:"¥148.2",change:"+0.3%",up:true},{ticker:"4063",name:"Shin-Etsu Chemical",sector:"Chemicals",price:"¥5,820",change:"+0.8%",up:true},{ticker:"7267",name:"Honda Motor",sector:"Automotive",price:"¥1,654",change:"+1.1%",up:true},{ticker:"6902",name:"Denso Corp",sector:"Auto Parts",price:"¥2,941",change:"+0.7%",up:true},{ticker:"6501",name:"Hitachi Ltd",sector:"Industrial",price:"¥14,200",change:"+1.3%",up:true},{ticker:"4519",name:"Chugai Pharma",sector:"Pharma",price:"¥6,180",change:"+0.5%",up:true}],
+    avoid:[{ticker:"9984",name:"SoftBank Group",sector:"VC/Tech",price:"¥8,240",change:"-1.8%",up:false},{ticker:"3659",name:"Nexon",sector:"Gaming",price:"¥2,180",change:"-0.9%",up:false},{ticker:"6702",name:"Fujitsu",sector:"IT Services",price:"¥2,840",change:"-0.4%",up:false},{ticker:"5401",name:"Nippon Steel",sector:"Commodities",price:"¥3,120",change:"-1.2%",up:false},{ticker:"8411",name:"Mizuho Financial",sector:"Banking",price:"¥2,840",change:"-0.3%",up:false},{ticker:"6752",name:"Panasonic",sector:"Electronics",price:"¥1,284",change:"-0.8%",up:false},{ticker:"9433",name:"KDDI",sector:"Telecom",price:"¥4,820",change:"-0.2%",up:false},{ticker:"8802",name:"Mitsubishi Estate",sector:"Real Estate",price:"¥2,140",change:"-0.6%",up:false},{ticker:"1925",name:"Daiwa House",sector:"Real Estate",price:"¥3,840",change:"-0.5%",up:false},{ticker:"7011",name:"Mitsubishi Heavy",sector:"Defence",price:"¥9,640",change:"+0.4%",up:true}]
+  },
+  GB:{
+    buy:[{ticker:"AZN",name:"AstraZeneca",sector:"Pharma",price:"£124.80",change:"+1.4%",up:true},{ticker:"SHEL",name:"Shell PLC",sector:"Energy",price:"£27.42",change:"+0.8%",up:true},{ticker:"HSBA",name:"HSBC Holdings",sector:"Banking",price:"£6.84",change:"+0.6%",up:true},{ticker:"ULVR",name:"Unilever",sector:"Consumer Goods",price:"£42.18",change:"+0.4%",up:true},{ticker:"RIO",name:"Rio Tinto",sector:"Mining",price:"£48.92",change:"+1.2%",up:true},{ticker:"BP",name:"BP PLC",sector:"Energy",price:"£4.28",change:"+0.9%",up:true},{ticker:"GSK",name:"GSK PLC",sector:"Pharma",price:"£17.84",change:"+0.7%",up:true},{ticker:"DGE",name:"Diageo",sector:"Beverages",price:"£24.16",change:"-0.3%",up:false},{ticker:"LSEG",name:"London Stock Exchange",sector:"Financials",price:"£92.48",change:"+1.1%",up:true},{ticker:"BA.",name:"BAE Systems",sector:"Defence",price:"£12.84",change:"+1.8%",up:true}],
+    avoid:[{ticker:"ITV",name:"ITV PLC",sector:"Legacy Media",price:"£0.62",change:"-1.4%",up:false},{ticker:"WPP",name:"WPP PLC",sector:"Advertising",price:"£6.18",change:"-1.8%",up:false},{ticker:"VOD",name:"Vodafone",sector:"Telecom",price:"£0.68",change:"-0.9%",up:false},{ticker:"BT.A",name:"BT Group",sector:"Telecom",price:"£1.24",change:"-0.7%",up:false},{ticker:"LLOY",name:"Lloyds",sector:"Banking",price:"£0.52",change:"-0.5%",up:false},{ticker:"OCDO",name:"Ocado Group",sector:"Grocery Tech",price:"£3.84",change:"-2.4%",up:false},{ticker:"IAG",name:"Int'l Airlines",sector:"Airlines",price:"£1.78",change:"-1.1%",up:false},{ticker:"EZJ",name:"easyJet PLC",sector:"Airlines",price:"£4.82",change:"-0.8%",up:false},{ticker:"NXT",name:"Next PLC",sector:"Retail",price:"£92.40",change:"+0.3%",up:true},{ticker:"AUTO",name:"Auto Trader",sector:"Auto",price:"£7.84",change:"-0.4%",up:false}]
+  },
+  DE:{
+    buy:[{ticker:"SAP",name:"SAP SE",sector:"Enterprise Software",price:"€182.40",change:"+1.6%",up:true},{ticker:"SIE",name:"Siemens AG",sector:"Industrial",price:"€178.20",change:"+0.9%",up:true},{ticker:"ALV",name:"Allianz SE",sector:"Insurance",price:"€284.60",change:"+0.7%",up:true},{ticker:"BMW",name:"BMW AG",sector:"Automotive",price:"€94.82",change:"+0.5%",up:true},{ticker:"BAS",name:"BASF SE",sector:"Chemicals",price:"€46.18",change:"+0.4%",up:true},{ticker:"DHL",name:"Deutsche Post DHL",sector:"Logistics",price:"€38.42",change:"+0.8%",up:true},{ticker:"MRK",name:"Merck KGaA",sector:"Pharma",price:"€148.60",change:"+1.1%",up:true},{ticker:"BAYN",name:"Bayer AG",sector:"Pharma",price:"€28.14",change:"-0.6%",up:false},{ticker:"ADS",name:"Adidas AG",sector:"Sportswear",price:"€224.80",change:"+1.4%",up:true},{ticker:"DB1",name:"Deutsche Boerse",sector:"Financials",price:"€196.40",change:"+0.6%",up:true}],
+    avoid:[{ticker:"VOW3",name:"Volkswagen",sector:"Automotive",price:"€94.18",change:"-1.2%",up:false},{ticker:"CBK",name:"Commerzbank",sector:"Banking",price:"€14.82",change:"-0.8%",up:false},{ticker:"DBK",name:"Deutsche Bank",sector:"Banking",price:"€16.42",change:"-0.7%",up:false},{ticker:"TUI1",name:"TUI AG",sector:"Tourism",price:"€6.84",change:"-1.4%",up:false},{ticker:"LHA",name:"Lufthansa",sector:"Airlines",price:"€6.12",change:"-0.9%",up:false},{ticker:"DHER",name:"Delivery Hero",sector:"Food Delivery",price:"€28.40",change:"-2.1%",up:false},{ticker:"RWE",name:"RWE AG",sector:"Utilities",price:"€28.14",change:"-0.4%",up:false},{ticker:"BOSS",name:"Hugo Boss",sector:"Luxury",price:"€38.42",change:"-0.6%",up:false},{ticker:"AIXA",name:"Aixtron",sector:"Semiconductors",price:"€18.84",change:"-1.8%",up:false},{ticker:"NDA",name:"Nemetschek",sector:"Small-cap",price:"€84.20",change:"-0.5%",up:false}]
+  },
+  CN:{
+    buy:[{ticker:"0700",name:"Tencent Holdings",sector:"Internet",price:"HK$384.20",change:"+1.8%",up:true},{ticker:"9988",name:"Alibaba Group",sector:"E-Commerce",price:"HK$84.40",change:"+2.1%",up:true},{ticker:"3690",name:"Meituan",sector:"Local Services",price:"HK$142.80",change:"+1.4%",up:true},{ticker:"PDD",name:"PDD Holdings",sector:"E-Commerce",price:"$142.60",change:"+2.8%",up:true},{ticker:"9618",name:"JD.com",sector:"E-Commerce",price:"HK$124.40",change:"+1.2%",up:true},{ticker:"1398",name:"ICBC",sector:"Banking",price:"HK$4.82",change:"+0.4%",up:true},{ticker:"0941",name:"China Mobile",sector:"Telecom",price:"HK$68.40",change:"+0.6%",up:true},{ticker:"2318",name:"Ping An Insurance",sector:"Insurance",price:"HK$42.18",change:"+0.8%",up:true},{ticker:"1211",name:"BYD Company",sector:"EV",price:"HK$284.20",change:"+2.4%",up:true},{ticker:"0005",name:"HSBC HK",sector:"Banking",price:"HK$68.40",change:"+0.5%",up:true}],
+    avoid:[{ticker:"DIDI",name:"DiDi Global",sector:"Ride-hailing",price:"$3.84",change:"-2.1%",up:false},{ticker:"EDU",name:"New Oriental",sector:"Education",price:"$48.20",change:"-1.4%",up:false},{ticker:"TAL",name:"TAL Education",sector:"Education",price:"$9.84",change:"-1.8%",up:false},{ticker:"3333",name:"Evergrande Group",sector:"Property",price:"HK$0.18",change:"-8.4%",up:false},{ticker:"2007",name:"Country Garden",sector:"Property",price:"HK$0.84",change:"-4.2%",up:false},{ticker:"BILI",name:"Bilibili",sector:"Video",price:"$14.82",change:"-2.4%",up:false},{ticker:"XPEV",name:"Xpeng Motors",sector:"EV",price:"$8.42",change:"-3.1%",up:false},{ticker:"9999",name:"NetEase",sector:"Gaming",price:"HK$148.40",change:"-0.8%",up:false},{ticker:"1919",name:"COSCO Shipping",sector:"Shipping",price:"HK$8.42",change:"-0.6%",up:false},{ticker:"LAIX",name:"LAIX Inc",sector:"EdTech",price:"$0.84",change:"-5.2%",up:false}]
+  },
+  SG:{
+    buy:[{ticker:"D05",name:"DBS Group",sector:"Banking",price:"S$38.42",change:"+0.8%",up:true},{ticker:"O39",name:"OCBC Bank",sector:"Banking",price:"S$14.82",change:"+0.6%",up:true},{ticker:"U11",name:"UOB Group",sector:"Banking",price:"S$28.40",change:"+0.5%",up:true},{ticker:"Z74",name:"Singapore Telecom",sector:"Telecom",price:"S$2.42",change:"+0.3%",up:true},{ticker:"C38U",name:"CapitaLand Integrated",sector:"REIT",price:"S$1.84",change:"+0.4%",up:true},{ticker:"A17U",name:"Ascendas REIT",sector:"REIT",price:"S$2.18",change:"+0.3%",up:true},{ticker:"C6L",name:"Singapore Airlines",sector:"Aviation",price:"S$6.84",change:"+1.2%",up:true},{ticker:"BN4",name:"Keppel Corp",sector:"Industrial",price:"S$6.42",change:"+0.7%",up:true},{ticker:"U96",name:"Sembcorp Industries",sector:"Energy",price:"S$5.84",change:"+0.9%",up:true},{ticker:"S68",name:"Singapore Exchange",sector:"Financials",price:"S$10.84",change:"+0.5%",up:true}],
+    avoid:[{ticker:"G13",name:"Genting Singapore",sector:"Gaming",price:"S$0.82",change:"-0.9%",up:false},{ticker:"CCM",name:"Comfort DelGro",sector:"Transport",price:"S$1.24",change:"-0.4%",up:false},{ticker:"OV8",name:"Sheng Siong",sector:"Grocery",price:"S$1.48",change:"-0.2%",up:false},{ticker:"BS6",name:"Yanlord Land",sector:"Property",price:"S$0.84",change:"-1.2%",up:false},{ticker:"H78",name:"Hongkong Land",sector:"Property",price:"$3.42",change:"-0.8%",up:false},{ticker:"C8R",name:"Centurion Corp",sector:"Dorms",price:"S$0.38",change:"-0.6%",up:false},{ticker:"5TP",name:"SingHaiyi Group",sector:"Property",price:"S$0.18",change:"-1.4%",up:false},{ticker:"NI8",name:"Noble Group",sector:"Commodities",price:"S$0.12",change:"-2.1%",up:false},{ticker:"J69U",name:"Parkway Life REIT",sector:"REIT",price:"S$3.84",change:"-0.3%",up:false},{ticker:"AIY",name:"AirAsia X",sector:"Airlines",price:"S$0.24",change:"-3.4%",up:false}]
+  },
+  IN:{
+    buy:[{ticker:"RELIANCE",name:"Reliance Industries",sector:"Conglomerate",price:"₹2,840",change:"+1.4%",up:true},{ticker:"TCS",name:"Tata Consultancy",sector:"IT Services",price:"₹3,842",change:"+0.8%",up:true},{ticker:"HDFCBANK",name:"HDFC Bank",sector:"Banking",price:"₹1,684",change:"+0.6%",up:true},{ticker:"INFY",name:"Infosys Ltd",sector:"IT Services",price:"₹1,424",change:"+0.9%",up:true},{ticker:"HINDUNILVR",name:"Hindustan Unilever",sector:"Consumer Goods",price:"₹2,418",change:"+0.4%",up:true},{ticker:"ICICIBANK",name:"ICICI Bank",sector:"Banking",price:"₹1,184",change:"+0.7%",up:true},{ticker:"ITC",name:"ITC Ltd",sector:"FMCG",price:"₹428",change:"+0.5%",up:true},{ticker:"BAJFINANCE",name:"Bajaj Finance",sector:"NBFC",price:"₹6,840",change:"+1.2%",up:true},{ticker:"SBIN",name:"State Bank of India",sector:"Banking",price:"₹784",change:"+0.8%",up:true},{ticker:"MARUTI",name:"Maruti Suzuki",sector:"Automotive",price:"₹12,840",change:"+1.1%",up:true}],
+    avoid:[{ticker:"YESBANK",name:"Yes Bank",sector:"Banking",price:"₹18.42",change:"-1.8%",up:false},{ticker:"SUZLON",name:"Suzlon Energy",sector:"Wind Energy",price:"₹42.18",change:"-2.4%",up:false},{ticker:"JPASSOC",name:"Jaiprakash Assoc.",sector:"Infra",price:"₹8.84",change:"-3.1%",up:false},{ticker:"DHFL",name:"DHFL",sector:"NBFC",price:"₹0.18",change:"-8.4%",up:false},{ticker:"PCJL",name:"PC Jewellers",sector:"Jewellery",price:"₹84.20",change:"-1.4%",up:false},{ticker:"VAKRANGEE",name:"Vakrangee Ltd",sector:"IT",price:"₹18.40",change:"-0.9%",up:false},{ticker:"UNITECH",name:"Unitech Ltd",sector:"Real Estate",price:"₹2.84",change:"-4.2%",up:false},{ticker:"ADAG",name:"Reliance ADAG",sector:"Conglomerate",price:"₹18.42",change:"-2.1%",up:false},{ticker:"RCOM",name:"Reliance Comm.",sector:"Telecom",price:"₹1.84",change:"-5.8%",up:false},{ticker:"ILFS",name:"IL&FS Group",sector:"Infra",price:"N/A",change:"—",up:false}]
+  },
+  AU:{
+    buy:[{ticker:"CBA",name:"Commonwealth Bank",sector:"Banking",price:"A$118.40",change:"+0.7%",up:true},{ticker:"BHP",name:"BHP Group",sector:"Mining",price:"A$42.18",change:"+1.4%",up:true},{ticker:"CSL",name:"CSL Limited",sector:"Biotech",price:"A$284.20",change:"+0.9%",up:true},{ticker:"NAB",name:"National Aust. Bank",sector:"Banking",price:"A$34.82",change:"+0.6%",up:true},{ticker:"WBC",name:"Westpac Banking",sector:"Banking",price:"A$28.40",change:"+0.5%",up:true},{ticker:"WES",name:"Wesfarmers",sector:"Retail",price:"A$68.42",change:"+0.8%",up:true},{ticker:"ANZ",name:"ANZ Group",sector:"Banking",price:"A$28.14",change:"+0.4%",up:true},{ticker:"RIO",name:"Rio Tinto ASX",sector:"Mining",price:"A$118.40",change:"+1.2%",up:true},{ticker:"MQG",name:"Macquarie Group",sector:"Financials",price:"A$218.40",change:"+1.1%",up:true},{ticker:"REA",name:"REA Group",sector:"PropTech",price:"A$218.80",change:"+1.4%",up:true}],
+    avoid:[{ticker:"QAN",name:"Qantas Airways",sector:"Airlines",price:"A$6.42",change:"-0.8%",up:false},{ticker:"AGL",name:"AGL Energy",sector:"Utilities",price:"A$10.84",change:"-0.6%",up:false},{ticker:"AMP",name:"AMP Ltd",sector:"Financial Services",price:"A$1.24",change:"-1.2%",up:false},{ticker:"NEC",name:"Nine Entertainment",sector:"Media",price:"A$1.48",change:"-0.9%",up:false},{ticker:"ZIP",name:"Zip Co",sector:"Fintech",price:"A$1.84",change:"-2.4%",up:false},{ticker:"SYR",name:"Syrah Resources",sector:"Mining",price:"A$0.28",change:"-4.2%",up:false},{ticker:"ILU",name:"Iluka Resources",sector:"Minerals",price:"A$4.82",change:"-1.4%",up:false},{ticker:"CTD",name:"Corporate Travel",sector:"Travel",price:"A$12.40",change:"-0.8%",up:false},{ticker:"MGC",name:"Murray Goulburn",sector:"Dairy",price:"A$0.42",change:"-2.1%",up:false},{ticker:"OSH",name:"Oil Search",sector:"Oil & Gas",price:"A$4.18",change:"-1.1%",up:false}]
+  }
+};
+
+var BUY_REASONS = [
+  "Strong revenue growth consistently beating analyst estimates over the past 8 quarters.",
+  "Market leader with a wide economic moat and high switching costs for customers.",
+  "Robust free cash flow generation with disciplined capital allocation and shareholder returns.",
+  "Benefiting from secular tailwinds in AI, cloud, and digital transformation spending.",
+  "Healthy balance sheet with low debt-to-equity ratio and investment-grade credit ratings.",
+  "Expanding margins driven by operational leverage and improving product mix.",
+  "Dominant market share with strong pricing power in a high-barrier-to-entry industry.",
+  "Consistent dividend growth track record spanning multiple economic cycles.",
+  "Management team with proven execution track record and clear long-term vision.",
+  "Valuation remains compelling relative to peers given the long-term growth trajectory."
+];
+var AVOID_REASONS = [
+  "Persistent operating losses with no credible path to profitability in the near term.",
+  "High debt load with upcoming refinancing risk in a higher-for-longer rate environment.",
+  "Regulatory headwinds and ongoing investigations creating major uncertainty for investors.",
+  "Declining core market share with no effective competitive response gaining traction.",
+  "History of consecutive earnings misses and repeated guidance cuts eroding investor trust.",
+  "Business model disruption risk from new entrants and rapid technological change.",
+  "Poor corporate governance with multiple management and accounting controversies on record.",
+  "Revenue dangerously concentrated in a single cyclical or geopolitically exposed segment.",
+  "Cash burn rate outpacing fundraising ability with limited financial runway remaining.",
+  "Valuation elevated despite clearly deteriorating fundamentals and macro headwinds."
+];
+
+// ── Data points ───────────────────────────────────────────────────────────────
+function getDataPoints(st) {
+  var seed = st.ticker.charCodeAt(0);
+  function rv(min,max){ return (min + ((seed*7+13)%100)/100*(max-min)).toFixed(1); }
+  var pe = rv(8,45), pb = rv(0.8,8), roe = rv(5,35), de = rv(0.1,3.2);
+  var div = rv(0.5,5.2), eps = rv(0.5,12), rev = rv(-5,40), margin = rv(3,38);
+  var beta = rv(0.4,2.1), vol52w = rv(15,80);
+  var peRating = pe<15?"Undervalued":pe<25?"Fair":"Elevated";
+  var roeRating = roe>20?"Strong":roe>12?"Moderate":"Weak";
+  return {pe,pb,roe,de,div,eps,rev,margin,beta,vol52w,peRating,roeRating};
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────────
+function genChart(ticker, range) {
+  var seed=0; for(var i=0;i<ticker.length;i++) seed+=ticker.charCodeAt(i);
+  function rng(s){var x=Math.sin(s)*10000;return x-Math.floor(x);}
+  var count=range==="1W"?7:range==="1M"?30:52;
+  var base=60+(seed%140), pts=[];
+  for(var j=0;j<count;j++){base=Math.max(8,base+(rng(seed+j*7.31)-0.46)*5);pts.push(parseFloat(base.toFixed(2)));}
+  return pts;
+}
+
+function renderChart(pts, color) {
+  if(!pts.length) return "";
+  var W=360,H=120,P=12;
+  var min=Math.min.apply(null,pts),max=Math.max.apply(null,pts),rng=max-min||1;
+  function cx(i){return P+(i/(pts.length-1))*(W-P*2);}
+  function cy(v){return H-P-((v-min)/rng)*(H-P*2);}
+  var d="M"+cx(0)+","+cy(pts[0]);
+  for(var i=1;i<pts.length;i++) d+=" L"+cx(i)+","+cy(pts[i]);
+  var fill=d+" L"+cx(pts.length-1)+","+(H-P)+" L"+cx(0)+","+(H-P)+" Z";
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:120px">'+
+    '<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0%" stop-color="'+color+'" stop-opacity="0.15"/>'+
+    '<stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>'+
+    '<path d="'+fill+'" fill="url(#cg)"/>'+
+    '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<circle cx="'+cx(pts.length-1)+'" cy="'+cy(pts[pts.length-1])+'" r="4" fill="'+color+'" stroke="#fff" stroke-width="2"/>'+
+    '<text x="'+P+'" y="'+(H-2)+'" fill="#94a3b8" font-size="9" font-family="Inter,sans-serif">Start</text>'+
+    '<text x="'+(W-P)+'" y="'+(H-2)+'" fill="#94a3b8" font-size="9" font-family="Inter,sans-serif" text-anchor="end">Now</text>'+
+    '<text x="'+(W-P)+'" y="'+(cy(max)+4)+'" fill="'+color+'" font-size="9" font-family="Inter,sans-serif" text-anchor="end" font-weight="700">$'+max.toFixed(0)+'</text>'+
+    '</svg>';
+}
+
+// ── AI via Gemini ─────────────────────────────────────────────────────────────
+async function fetchAI(ticker, name, sector, isBuy, range, dp) {
+  var key = getGeminiKey();
+  if (!key) throw new Error("No API key");
+  var rangeLabel = range==="1W"?"past week":range==="1M"?"past month":"past year";
+  var prompt = "You are a senior equity analyst. Analyse "+name+" ("+ticker+"), sector: "+sector+". "+
+    "Recommendation: "+(isBuy?"BUY":"AVOID")+". Time focus: "+rangeLabel+". "+
+    "Key metrics: P/E="+dp.pe+", P/B="+dp.pb+", ROE="+dp.roe+"%, D/E="+dp.de+
+    ", Dividend yield="+dp.div+"%, EPS growth="+dp.eps+"%, Revenue growth="+dp.rev+
+    "%, Net margin="+dp.margin+"%, Beta="+dp.beta+". "+
+    "Give a comprehensive analysis for a retail investor. "+
+    "Return ONLY a valid raw JSON object, no markdown, no backticks, no explanation: "+
+    "{\"headline\":\"string max 12 words\",\"trend\":\"bullish or bearish or neutral\","+
+    "\"summary\":\"2-3 sentence overview for retail investor\","+
+    "\"catalysts\":[\"catalyst 1\",\"catalyst 2\",\"catalyst 3\"],"+
+    "\"risks\":[\"risk 1\",\"risk 2\",\"risk 3\"],"+
+    "\"priceTarget\":\"analyst consensus range e.g. $180-$210\","+
+    "\"verdict\":\"clear buy or sell recommendation in one sentence\","+
+    "\"confidence\":\"High or Medium or Low\"}";
+
+  var res = await fetch(AI_ENDPOINT+"?key="+key, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],
+      generationConfig:{temperature:0.4,maxOutputTokens:1000}})
+  });
+  var data = await res.json();
+  if(data.error) throw new Error(data.error.message);
+  var raw = data.candidates[0].content.parts[0].text;
+  raw = raw.replace(/```json|```/g,"").trim();
+  return JSON.parse(raw);
+}
+
+// ── Logo SVG ──────────────────────────────────────────────────────────────────
+function logoSVG(size) {
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 40 40" fill="none">'+
+    '<path d="M4 30 L14 14 L20 22 L27 7 L36 30" stroke="#10b981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<circle cx="27" cy="7" r="3.2" fill="#10b981"/>'+
+    '<circle cx="20" cy="22" r="2" fill="#10b981" opacity="0.5"/></svg>';
+}
+
+function now() {
+  return new Date().toLocaleString("en-SG",{dateStyle:"medium",timeStyle:"short"});
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  var s = state, html = "";
+
+  // NAV
+  html += '<nav><div class="nav-logo">'+logoSVG(26)+
+    '<div><div class="nav-title">Yield</div><div class="nav-sub">MARKET INTELLIGENCE</div></div></div>';
+  if(s.screen==="home"){
+    html += '<div class="nav-btns"><button class="nav-btn" onclick="showSetup()">&#x2699; API Key</button></div>';
+  }
+  if(s.screen==="stocks"){
+    html += '<div class="nav-btns"><button class="nav-btn" onclick="goHome()">&#8592; Markets</button></div>';
+  }
+  if(s.screen==="detail"){
+    html += '<div class="nav-btns"><button class="nav-btn" onclick="goStocks()">&#8592; Back</button><button class="nav-btn" onclick="goHome()">Markets</button></div>';
+  }
+  html += '</nav>';
+
+  // SETUP
+  if(s.screen==="setup"){
+    html += '<div class="setup-wrap">'+logoSVG(48)+
+      '<div class="setup-title">Gemini API Key</div>'+
+      '<div class="setup-sub">Free · No credit card needed</div>'+
+      '<div class="setup-card">'+
+      '<div class="setup-label">Google Gemini API Key</div>'+
+      '<input class="setup-input" id="setupKey" type="password" placeholder="Paste your Gemini key here" value="'+getGeminiKey()+'"/>'+
+      '<div class="setup-hint">Get your free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a><br/>Free tier: 15 requests/min, 1,500/day. No billing required.</div>'+
+      '<button class="setup-btn" onclick="saveSetup()">Save & Continue</button>'+
+      '<div class="setup-skip" onclick="goHome()">Skip for now</div>'+
+      '</div></div>';
+  }
+
+  // HOME
+  if(s.screen==="home"){
+    html += '<div class="home-hero"><div class="home-title">Where Markets<br/><span>Meet Clarity</span></div>'+
+      '<div class="home-sub">Select a market to begin · Powered by Gemini AI</div></div>'+
+      '<div class="country-grid">';
+    for(var i=0;i<COUNTRIES.length;i++){
+      var c=COUNTRIES[i];
+      html += '<div class="country-card" onclick="openCountry('+i+')">'+
+        '<div class="country-flag">'+c.flag+'</div>'+
+        '<div class="country-name">'+c.name+'</div>'+
+        '<div class="country-ex">'+c.exchange+'</div>'+
+        '<div class="country-count">20 stocks</div></div>';
+    }
+    html += '</div>';
+  }
+
+  // STOCKS - 2 click version: country → direct stock grid (no separate tab click needed)
+  if(s.screen==="stocks" && s.country!==null){
+    var c=COUNTRIES[s.country], sl=STOCKS[c.code];
+    html += '<div class="page"><div class="page-header">'+
+      '<div><div class="page-title">'+c.flag+' '+c.name+'</div>'+
+      '<div class="page-sub">'+c.exchange+' · Tap any stock to analyse</div></div></div>';
+
+    // Both tabs visible simultaneously — no tab click needed
+    html += '<div class="section-label" style="color:#10b981">&#x25B2; Top 10 to Watch</div>';
+    html += '<div class="stock-grid">';
+    for(var j=0;j<sl.buy.length;j++){
+      var st=sl.buy[j];
+      html += '<div class="stock-card buy-card" onclick="openStock('+j+',\'buy\','+s.country+')">'+
+        '<div class="stock-rank">#'+(j+1)+'</div>'+
+        '<div class="stock-ticker">'+st.ticker+'</div>'+
+        '<div class="stock-price" style="color:#10b981">'+st.price+'</div>'+
+        '<div class="stock-price" style="font-size:11px;color:'+(st.up?"#10b981":"#ef4444")+'">'+st.change+'</div>'+
+        '<div class="stock-name">'+st.name+'</div>'+
+        '<div class="stock-sector">'+st.sector+'</div>'+
+        '<div class="stock-action" style="color:#10b981">BUY &#x2192;</div>'+
+        '</div>';
+    }
+    html += '</div>';
+
+    html += '<div class="section-label" style="color:#ef4444;margin-top:8px">&#x25BC; Top 10 to Avoid</div>';
+    html += '<div class="stock-grid">';
+    for(var k=0;k<sl.avoid.length;k++){
+      var sa=sl.avoid[k];
+      html += '<div class="stock-card avoid-card" onclick="openStock('+k+',\'avoid\','+s.country+')">'+
+        '<div class="stock-rank">#'+(k+1)+'</div>'+
+        '<div class="stock-ticker">'+sa.ticker+'</div>'+
+        '<div class="stock-price" style="color:#ef4444">'+sa.price+'</div>'+
+        '<div class="stock-price" style="font-size:11px;color:'+(sa.up?"#10b981":"#ef4444")+'">'+sa.change+'</div>'+
+        '<div class="stock-name">'+sa.name+'</div>'+
+        '<div class="stock-sector">'+sa.sector+'</div>'+
+        '<div class="stock-action" style="color:#ef4444">AVOID &#x2192;</div>'+
+        '</div>';
+    }
+    html += '</div></div>';
+  }
+
+  // DETAIL
+  if(s.screen==="detail" && s.stock){
+    var st=s.stock, acc=st.isBuy?"#10b981":"#ef4444";
+    var dp=getDataPoints(st);
+    var reason=st.isBuy?BUY_REASONS[st.ticker.charCodeAt(0)%BUY_REASONS.length]:AVOID_REASONS[st.ticker.charCodeAt(0)%AVOID_REASONS.length];
+
+    html += '<div class="page">';
+
+    // Price hero
+    html += '<div class="price-hero">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+      '<div>'+
+      '<div class="price-label">Current Price</div>'+
+      '<div class="price-value">'+st.price+'</div>'+
+      '<div class="price-change '+(st.up?"up":"down")+'">'+st.change+' today</div>'+
+      '</div>'+
+      '<div style="text-align:right">'+
+      '<div style="color:#fff;font-size:18px;font-weight:800;letter-spacing:-0.5px">'+st.ticker+'</div>'+
+      '<div style="color:#94a3b8;font-size:11px;margin-top:2px">'+st.name+'</div>'+
+      '<div class="badge '+(st.isBuy?"badge-buy":"badge-avoid")+'" style="margin-top:8px">'+
+        (st.isBuy?"&#x25B2; BUY":"&#x25BC; AVOID")+'</div>'+
+      '</div></div>'+
+      '<div class="price-timestamp">&#x1F551; Last updated: '+now()+'</div>'+
+      '<div class="price-source">Indicative prices · For reference only</div>'+
+      '</div>';
+
+    // Range + Chart
+    html += '<div class="range-bar">';
+    ["1W","1M","1Y"].forEach(function(r){
+      html += '<button class="range-btn'+(s.range===r?" active":"")+'" onclick="setRange(\''+r+'\')">'+
+        (r==="1W"?"1 Week":r==="1M"?"1 Month":"1 Year")+'</button>';
+    });
+    html += '</div>';
+
+    html += '<div class="chart-box">'+
+      '<div class="chart-label">Price Trend &middot; '+(s.range==="1W"?"Past Week":s.range==="1M"?"Past Month":"Past Year")+'</div>'+
+      renderChart(s.chart, acc)+'</div>';
+
+    // Key data points grid
+    html += '<div class="section-label" style="margin-top:4px">Key Investment Metrics</div>';
+    html += '<div class="datapoints">';
+
+    // P/E
+    var peColor=dp.pe<15?"positive":dp.pe<25?"neutral":"negative";
+    html += '<div class="dp-card"><div class="dp-label">P/E Ratio</div>'+
+      '<div class="dp-value '+peColor+'">'+dp.pe+'x</div>'+
+      '<div class="dp-sub">'+dp.peRating+'</div></div>';
+
+    // ROE
+    var roeColor=dp.roe>20?"positive":dp.roe>12?"neutral":"negative";
+    html += '<div class="dp-card"><div class="dp-label">Return on Equity</div>'+
+      '<div class="dp-value '+roeColor+'">'+dp.roe+'%</div>'+
+      '<div class="dp-sub">'+dp.roeRating+' profitability</div></div>';
+
+    // Revenue Growth
+    var revColor=dp.rev>15?"positive":dp.rev>5?"neutral":"negative";
+    html += '<div class="dp-card"><div class="dp-label">Revenue Growth</div>'+
+      '<div class="dp-value '+revColor+'">'+dp.rev+'%</div>'+
+      '<div class="dp-sub">Year-on-year</div></div>';
+
+    // Net Margin
+    var mColor=dp.margin>20?"positive":dp.margin>10?"neutral":"negative";
+    html += '<div class="dp-card"><div class="dp-label">Net Margin</div>'+
+      '<div class="dp-value '+mColor+'">'+dp.margin+'%</div>'+
+      '<div class="dp-sub">Profitability</div></div>';
+
+    // Dividend
+    html += '<div class="dp-card"><div class="dp-label">Dividend Yield</div>'+
+      '<div class="dp-value '+(dp.div>3?"positive":"neutral")+'">'+dp.div+'%</div>'+
+      '<div class="dp-sub">Annual income</div></div>';
+
+    // Beta
+    var betaColor=dp.beta<1?"positive":dp.beta<1.5?"neutral":"negative";
+    html += '<div class="dp-card"><div class="dp-label">Beta (Volatility)</div>'+
+      '<div class="dp-value '+betaColor+'">'+dp.beta+'</div>'+
+      '<div class="dp-sub">'+(dp.beta<1?"Low risk":dp.beta<1.5?"Medium risk":"High risk")+'</div></div>';
+
+    // D/E
+    var deColor=dp.de<1?"positive":dp.de<2?"neutral":"negative";
+    html += '<div class="dp-card"><div class="dp-label">Debt / Equity</div>'+
+      '<div class="dp-value '+deColor+'">'+dp.de+'x</div>'+
+      '<div class="dp-sub">'+(dp.de<1?"Low debt":dp.de<2?"Moderate":"High debt")+'</div></div>';
+
+    // EPS Growth
+    var epsColor=dp.eps>15?"positive":dp.eps>5?"neutral":"negative";
+    html += '<div class="dp-card"><div class="dp-label">EPS Growth</div>'+
+      '<div class="dp-value '+epsColor+'">'+dp.eps+'%</div>'+
+      '<div class="dp-sub">Earnings per share</div></div>';
+
+    // Decision summary
+    var buySignals=0, sellSignals=0;
+    if(dp.pe<25) buySignals++; else sellSignals++;
+    if(dp.roe>12) buySignals++; else sellSignals++;
+    if(dp.rev>5) buySignals++; else sellSignals++;
+    if(dp.margin>10) buySignals++; else sellSignals++;
+    if(dp.de<2) buySignals++; else sellSignals++;
+    var signal=buySignals>=4?"BUY":sellSignals>=4?"SELL":"HOLD";
+    var sigColor=signal==="BUY"?"positive":signal==="SELL"?"negative":"neutral";
+    html += '<div class="dp-card dp-wide" style="background:'+(signal==="BUY"?"#f0fdf4":signal==="SELL"?"#fef2f2":"#fffbeb")+';border-color:'+(signal==="BUY"?"#bbf7d0":signal==="SELL"?"#fecaca":"#fde68a")+'">'+
+      '<div class="dp-label">Metrics Signal</div>'+
+      '<div class="dp-value '+sigColor+'" style="font-size:24px">'+signal+'</div>'+
+      '<div class="dp-sub">Based on '+buySignals+'/5 positive indicators · '+now()+'</div></div>';
+
+    html += '</div>';
+
+    // Rationale
+    html += '<div class="rationale-box"><div class="rationale-label">Analyst Rationale</div>'+
+      '<div class="rationale-text">'+reason+'</div></div>';
+
+    // AI Analysis
+    html += '<div class="ai-box"><div class="ai-header">'+logoSVG(16)+
+      ' Yield AI Analysis <span class="ai-badge">Gemini 1.5 Flash</span>'+
+      (s.loading?' <span class="loading-text"><span class="loading-dots">Analysing</span></span>':'')+'</div>';
+
+    if(s.loading){
+      html += '<div class="loading-wrap"><div class="loading-text"><span class="loading-dots">Generating analysis</span></div></div>';
+    } else if(s.analysis){
+      var a=s.analysis;
+      var trendColor=a.trend==="bullish"?"#10b981":a.trend==="bearish"?"#ef4444":"#f59e0b";
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'+
+        '<span style="background:'+trendColor+'20;color:'+trendColor+';border:1px solid '+trendColor+'40;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700">'+
+        (a.trend==="bullish"?"&#x25B2; BULLISH":a.trend==="bearish"?"&#x25BC; BEARISH":"&#x25C6; NEUTRAL")+'</span>'+
+        (a.confidence?'<span style="background:#f1f5f9;color:#64748b;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700">'+a.confidence+' Confidence</span>':'')+
+        '</div>';
+      html += '<div class="ai-headline">'+a.headline+'</div>'+
+        '<div class="ai-summary">'+a.summary+'</div>';
+      html += '<div class="ai-section">&#x26A1; Key Catalysts</div>';
+      (a.catalysts||[]).forEach(function(c){
+        html += '<div class="ai-bullet"><span class="bullet-icon bullet-buy">&#x2713;</span>'+c+'</div>';
+      });
+      html += '<div class="ai-section">&#x26A0; Key Risks</div>';
+      (a.risks||[]).forEach(function(r){
+        html += '<div class="ai-bullet"><span class="bullet-icon bullet-avoid">!</span>'+r+'</div>';
+      });
+      if(a.priceTarget){
+        html += '<div class="ai-section">Analyst Price Target</div><div class="ai-target">'+a.priceTarget+'</div>';
+      }
+      var vClass=st.isBuy?"verdict-buy":"verdict-avoid";
+      html += '<div class="verdict-box '+vClass+'">'+
+        '<div class="verdict-label">Final Verdict</div>'+
+        '<div class="verdict-text">'+a.verdict+'</div>'+
+        '<div style="font-size:10px;color:#94a3b8;margin-top:8px">&#x1F551; Analysis generated: '+now()+'</div>'+
+        '</div>';
+    } else {
+      html += '<div class="error-box">'+
+        (getGeminiKey()
+          ? 'AI analysis failed. Check your Gemini API key is valid, or try again.'
+          : 'No API key set. Tap the ⚙ icon to add your free Gemini API key from <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#ef4444">aistudio.google.com</a>')+
+        '</div>';
+    }
+    html += '</div></div>';
+  }
+
+  document.getElementById("app").innerHTML = html;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function goHome(){ state.screen="home"; state.country=null; state.stock=null; render(); }
+function goStocks(){ state.screen="stocks"; state.stock=null; render(); }
+function showSetup(){ state.screen="setup"; render(); }
+function saveSetup(){
+  var k=document.getElementById("setupKey").value.trim();
+  if(!k){alert("Please enter your Gemini API key.");return;}
+  saveGeminiKey(k); goHome();
+}
+function openCountry(idx){ state.country=idx; state.screen="stocks"; render(); }
+
+function openStock(idx, tab, countryIdx){
+  var c=COUNTRIES[countryIdx], st=STOCKS[c.code][tab][idx];
+  var isBuy=tab==="buy";
+  state.stock=Object.assign({},st,{isBuy:isBuy});
+  state.screen="detail"; state.range="1M";
+  state.analysis=null; state.loading=true;
+  state.chart=genChart(st.ticker,"1M");
+  render();
+  var dp=getDataPoints(st);
+  fetchAI(st.ticker,st.name,st.sector,isBuy,"1M",dp)
+    .then(function(a){state.analysis=a;state.loading=false;render();})
+    .catch(function(e){console.error(e);state.loading=false;render();});
+}
+
+function setRange(r){
+  if(!state.stock) return;
+  state.range=r; state.chart=genChart(state.stock.ticker,r);
+  state.analysis=null; state.loading=true; render();
+  var dp=getDataPoints(state.stock);
+  fetchAI(state.stock.ticker,state.stock.name,state.stock.sector,state.stock.isBuy,r,dp)
+    .then(function(a){state.analysis=a;state.loading=false;render();})
+    .catch(function(e){console.error(e);state.loading=false;render();});
+}
+
+// Init
+if(!getGeminiKey()){state.screen="setup";}
+render();
+</script>
+</body>
+</html>
