@@ -157,7 +157,7 @@ function getGeminiKey() { return localStorage.getItem("yield_gemini_key") || "";
 function saveGeminiKey(k) { localStorage.setItem("yield_gemini_key", k.trim()); }
 
 // ── State ─────────────────────────────────────────────────────────────────────
-var state = { screen:"home", country:null, stock:null, tab:"buy", range:"1M", chart:[], analysis:null, loading:false, priceData:null };
+var state = { screen:"home", country:null, stock:null, tab:"buy", range:"1M", chart:[], analysis:null, loading:false, priceData:null, lastError:null };
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 var COUNTRIES = [
@@ -302,9 +302,19 @@ async function fetchAI(ticker, name, sector, isBuy, range, dp) {
       generationConfig:{temperature:0.4,maxOutputTokens:1000}})
   });
   var data = await res.json();
-  if(data.error) throw new Error(data.error.message);
+
+  // Surface exact error from Gemini for debugging
+  if(data.error) throw new Error("Gemini error "+data.error.code+": "+data.error.message);
+  if(!data.candidates || !data.candidates.length) throw new Error("No candidates returned: "+JSON.stringify(data));
+  if(!data.candidates[0].content) throw new Error("Blocked/empty: "+JSON.stringify(data.candidates[0]));
+
   var raw = data.candidates[0].content.parts[0].text;
-  raw = raw.replace(/```json|```/g,"").trim();
+  // Strip any markdown wrapping Gemini sometimes adds despite instructions
+  raw = raw.replace(/^```json\s*/,"").replace(/^```\s*/,"").replace(/\s*```$/,"").trim();
+  // Find the JSON object in the response in case there's extra text
+  var jsonStart = raw.indexOf("{");
+  var jsonEnd = raw.lastIndexOf("}");
+  if(jsonStart !== -1 && jsonEnd !== -1) raw = raw.substring(jsonStart, jsonEnd+1);
   return JSON.parse(raw);
 }
 
@@ -555,8 +565,8 @@ function render() {
     } else {
       html += '<div class="error-box">'+
         (getGeminiKey()
-          ? 'AI analysis failed. Check your Gemini API key is valid, or try again.'
-          : 'No API key set. Tap the ⚙ icon to add your free Gemini API key from <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#ef4444">aistudio.google.com</a>')+
+          ? 'AI analysis failed: <b>'+( s.lastError||'Unknown error')+'</b><br/><br/>Common fixes:<br/>1. Make sure your Gemini key is valid at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#ef4444">aistudio.google.com/apikey</a><br/>2. Key must have Gemini API enabled<br/>3. Free tier: 15 req/min max<br/><br/><button onclick="retryAI()" style="background:#ef4444;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:700;margin-top:4px">Retry</button>'
+          : 'No API key set. Tap ⚙ API Key button above to add your free Gemini key from <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#ef4444">aistudio.google.com</a>')+
         '</div>';
     }
     html += '</div></div>';
@@ -587,7 +597,7 @@ function openStock(idx, tab, countryIdx){
   var dp=getDataPoints(st);
   fetchAI(st.ticker,st.name,st.sector,isBuy,"1M",dp)
     .then(function(a){state.analysis=a;state.loading=false;render();})
-    .catch(function(e){console.error(e);state.loading=false;render();});
+    .catch(function(e){console.error(e);state.lastError=e.message;state.loading=false;render();});
 }
 
 function setRange(r){
@@ -597,7 +607,16 @@ function setRange(r){
   var dp=getDataPoints(state.stock);
   fetchAI(state.stock.ticker,state.stock.name,state.stock.sector,state.stock.isBuy,r,dp)
     .then(function(a){state.analysis=a;state.loading=false;render();})
-    .catch(function(e){console.error(e);state.loading=false;render();});
+    .catch(function(e){console.error(e);state.lastError=e.message;state.loading=false;render();});
+}
+
+function retryAI(){
+  if(!state.stock) return;
+  state.analysis=null; state.loading=true; state.lastError=null; render();
+  var dp=getDataPoints(state.stock);
+  fetchAI(state.stock.ticker,state.stock.name,state.stock.sector,state.stock.isBuy,state.range,dp)
+    .then(function(a){state.analysis=a;state.loading=false;render();})
+    .catch(function(e){console.error(e);state.lastError=e.message;state.loading=false;render();});
 }
 
 // Init
